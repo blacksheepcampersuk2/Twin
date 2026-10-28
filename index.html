@@ -1,0 +1,1115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <title>Complete Cupboard Configurator</title>
+  <link rel="preload" href="Twin%20Bench.glb" as="fetch" crossorigin>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.3.1/model-viewer.min.js"></script>
+  <style>
+    :root {
+      --page-bg: #dfe3dc;
+      --panel-bg: #dfe8d9;
+      --panel-soft: #ecf0ea;
+      --header-bg: #f5f1f0;
+      --toolbar-bg: #f6f5f3;
+      --dark-text: #1f1f1f;
+      --muted-text: #5b5b5b;
+      --line: #c8cdc2;
+      --button-line: #2e2d2b;
+      --button-bg: #f5f5f3;
+      --button-active: #2d3d2b;
+      --button-active-2: #3c4f3a;
+      --accent: #1b2d1e;
+      --soft-green: #e3e8df;
+      --shadow: rgba(0,0,0,0.08);
+      --model-bg: #dfe3dc;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+      overflow-x: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--page-bg);
+      color: var(--dark-text);
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      padding: 0;
+      background: var(--page-bg);
+    }
+
+    .page-shell {
+      width: min(1280px, 100%);
+      min-height: 100vh;
+      background: var(--page-bg);
+      padding: 0 0 32px;
+      box-shadow: none;
+    }
+
+    .topbar {
+      display: none !important;
+    }
+
+    .product-layout {
+      width: 100%;
+      background: var(--page-bg);
+      border: 0;
+      border-top: 0;
+      padding: 28px 42px 30px;
+      min-height: 780px;
+    }
+
+    .product-title {
+      margin: 0 auto 22px;
+      text-align: center;
+      max-width: 820px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: clamp(2.1rem, 2.6vw, 2.8rem);
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+      font-weight: 800;
+      color: #111;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.9fr) minmax(260px, 0.9fr);
+      gap: 46px;
+      align-items: start;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .viewer-card {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      padding-top: 4px;
+      grid-column: 1;
+    }
+
+    .product-info {
+      padding-top: 12px;
+      grid-column: 2;
+    }
+
+    .viewer-box {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      min-height: 260px;
+      max-height: 70vh;
+      border: 1px solid rgba(46,45,42,0.3);
+      background: var(--model-bg);
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4);
+    }
+
+    .viewer-box .viewer-overlay {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(180deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1));
+      color: #333;
+      font-size: 18px;
+      font-weight: 600;
+      z-index: 3;
+      position: absolute;
+      inset: 0;
+    }
+
+    model-viewer {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      background: var(--model-bg);
+      border-radius: 0;
+      --progress-bar-color: #1a2d1d;
+    }
+
+    .product-price {
+      margin-top: 10px;
+      color: #303030;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .product-price strong {
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .configurator-panel {
+      margin-top: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      width: 100%;
+      max-width: 360px;
+    }
+
+    .row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .row-title {
+      min-width: 0;
+      font-weight: 700;
+      font-size: 14px;
+      color: #1c1c1c;
+      letter-spacing: 0.01em;
+      margin-bottom: 2px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid #2d2d2d;
+      background: #f5f4f1;
+      color: #1b1b1b;
+      border-radius: 4px;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    button:not(.icon-btn):hover {
+      filter: brightness(0.98);
+    }
+
+    button.active {
+      background: var(--button-active);
+      color: white;
+      border-color: var(--button-active);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+    }
+
+    .size-btn,
+    .door-btn,
+    .cushion-btn,
+    .layout-btn,
+    .package-btn {
+      min-width: 56px;
+      padding: 10px 11px;
+    }
+
+    .layout-btn,
+    .package-btn {
+      min-width: 0;
+      flex: 1;
+      text-align: center;
+    }
+
+    .door-btn {
+      min-width: 52px;
+    }
+
+    .door-btn[data-door="Green"],
+    .door-btn[data-door="Blue"],
+    .door-btn[data-door="Black"],
+    .door-btn[data-door="Cream"] {
+      position: relative;
+      min-width: 42px;
+      width: 42px;
+      height: 36px;
+      padding: 0;
+      overflow: hidden;
+      background: transparent;
+    }
+
+    .door-btn[data-door="Green"]::before,
+    .door-btn[data-door="Blue"]::before,
+    .door-btn[data-door="Black"]::before,
+    .door-btn[data-door="Cream"]::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 3px;
+      background: var(--swatch-color, #d1d1d1);
+      border: 1px solid rgba(0,0,0,0.35);
+    }
+
+    .door-btn[data-door="Green"] { --swatch-color: #3d4c3d; }
+    .door-btn[data-door="Blue"] { --swatch-color: #a8b5ba; }
+    .door-btn[data-door="Black"] { --swatch-color: #171717; }
+    .door-btn[data-door="Cream"] { --swatch-color: #efeae1; }
+
+    .door-btn.hexa-btn {
+      min-width: 90px;
+      width: auto;
+      height: auto;
+      padding: 10px 12px;
+      font-size: 12px;
+      text-align: center;
+      background: #f5f4f1;
+      border: 1px solid #2d2d2d;
+      color: #1b1b1b;
+    }
+
+    .door-btn.active::before {
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.9), 0 0 0 2px rgba(17,17,17,0.9);
+    }
+
+    .door-btn.active {
+      background: transparent;
+      border-color: rgba(0,0,0,0.7);
+      box-shadow: none;
+    }
+
+    .door-btn.hexa-btn.active {
+      background: var(--button-active);
+      color: white;
+      border-color: var(--button-active);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+    }
+
+    .cushion-btn {
+      min-width: 0;
+      flex: 1;
+      text-align: center;
+    }
+
+    .cushion-btn:disabled,
+    .cushion-btn.disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      filter: grayscale(0.2);
+      pointer-events: none;
+    }
+
+    .request-btn {
+      width: 100%;
+      background: #2a3c2d;
+      color: white;
+      border-color: #2a3c2d;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 13px 16px;
+      border-radius: 4px;
+      letter-spacing: 0.02em;
+      margin-top: 4px;
+    }
+
+    .request-btn:hover {
+      background: #1f2d22;
+    }
+
+    .product-description,
+    .core-features {
+      margin-top: 0;
+      padding: 16px 18px;
+      border: 1px solid rgba(30, 30, 30, 0.08);
+      border-radius: 6px;
+      background: var(--page-bg);
+      color: #222;
+      font-size: 13px;
+      line-height: 1.6;
+      font-weight: 700;
+      width: 100%;
+      max-width: 100%;
+      text-align: left;
+      grid-column: 1;
+    }
+
+    .core-features {
+      display: none;
+      margin-top: 12px;
+    }
+
+    .core-features[hidden] {
+      display: none !important;
+    }
+
+    .core-features-title {
+      margin: 0 0 10px;
+      font-weight: 800;
+      font-size: 14px;
+      color: #1b1b1b;
+    }
+
+    .core-features-list {
+      margin: 0;
+      padding-left: 18px;
+      font-weight: 600;
+      line-height: 1.7;
+    }
+
+    .core-features-list li {
+      margin-bottom: 4px;
+    }
+
+    .view-controls {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: rgba(255,255,255,0.78);
+      padding: 8px;
+      border-radius: 8px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      z-index: 6;
+    }
+
+    .view-controls .row {
+      display: flex;
+      gap: 8px;
+      flex-direction: row;
+    }
+
+    .view-controls button {
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: 6px;
+      background: white;
+      border: 1px solid #d7d7d7;
+    }
+
+    @media (max-width: 900px) {
+      .page-shell { padding: 12px 12px 24px; }
+      .product-layout { padding: 18px 14px 24px; }
+      .product-grid {
+        grid-template-columns: 1fr;
+      }
+      .viewer-card {
+        order: 1;
+      }
+      .product-info {
+        order: 2;
+        padding-top: 0;
+        grid-column: 1;
+      }
+      #product-description {
+        order: 3;
+      }
+      #core-features {
+        order: 4;
+      }
+      .configurator-panel {
+        max-width: 100%;
+      }
+      .product-description,
+      .core-features {
+        max-width: 100%;
+      }
+      .viewer-box {
+        aspect-ratio: 1 / 1.08;
+        min-height: 220px;
+        max-height: 58vh;
+      }
+      .product-title {
+        margin-bottom: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <main class="product-layout">
+      <h1 class="product-title">The ewe -<br>furniture only</h1>
+
+      <div class="product-grid">
+        <section class="viewer-card" aria-label="Product viewer section">
+          <div class="viewer-box">
+            <model-viewer
+              id="cupboard-viewer"
+              src="Ewe.glb"
+              camera-controls
+              interaction-prompt="auto"
+              interaction-prompt-threshold="2000"
+              style="width:100%; height:100%; visibility:hidden; opacity:0; transition:opacity .25s; border-radius:0;">
+            </model-viewer>
+
+            <div class="view-controls" id="view-controls">
+              <div class="row">
+                <button data-rotate="left" type="button">Rotate Left</button>
+                <button data-rotate="right" type="button">Rotate Right</button>
+              </div>
+            </div>
+
+            <div id="viewer-spinner" class="viewer-overlay">Loading model…</div>
+          </div>
+        </section>
+
+        <aside class="product-info" aria-label="Product configuration panel">
+          <div class="product-price"><strong>£1,395.00</strong></div>
+
+          <div class="configurator-panel">
+            <div class="row">
+              <span class="row-title">Package</span>
+              <div class="btn-group">
+                <button class="package-btn active" type="button" data-package="Furniture Only">Furniture Only</button>
+                <button class="package-btn" type="button" data-package="Full Conversion">Full Conversion</button>
+              </div>
+            </div>
+
+            <div class="row">
+              <span class="row-title">Layout</span>
+              <div class="btn-group">
+                <button class="layout-btn" type="button" data-size="Twin%20Bench.glb">Twin Bench</button>
+                <button class="layout-btn active" type="button" data-size="Ewe.glb">Ewe</button>
+                <button class="layout-btn" type="button" data-size="Belted%20Ewe.glb">Belted Ewe</button>
+              </div>
+            </div>
+
+            <div class="row">
+              <span class="row-title">Color</span>
+              <div class="btn-group">
+                <button class="door-btn active" type="button" data-door="Green" aria-label="Green"></button>
+                <button class="door-btn" type="button" data-door="Blue" aria-label="Blue"></button>
+                <button class="door-btn" type="button" data-door="Black" aria-label="Black"></button>
+                <button class="door-btn" type="button" data-door="Cream" aria-label="Cream"></button>
+                <button class="door-btn hexa-btn" type="button" data-door="Hexa ply" aria-label="Hexa ply">Hexa ply</button>
+              </div>
+            </div>
+
+            <div class="row">
+              <span class="row-title">Wheelbase</span>
+              <div class="btn-group">
+                <button class="size-btn" type="button" data-wheelbase="SWB">SWB</button>
+                <button class="size-btn active" type="button" data-wheelbase="LWB">LWB</button>
+              </div>
+            </div>
+
+            <div class="row">
+              <span class="row-title">Cushions</span>
+              <div class="btn-group">
+                <button class="cushion-btn" type="button" data-cushion="Cushions">With Cushions</button>
+                <button class="cushion-btn active" type="button" data-cushion="Without%20Cushions">Without Cushions</button>
+              </div>
+            </div>
+
+            <button id="request-quote-btn" class="request-btn" type="button">Enquire now</button>
+          </div>
+        </aside>
+
+        <div id="product-description" class="product-description" aria-live="polite"></div>
+        <div id="core-features" class="core-features" hidden aria-live="polite"></div>
+      </div>
+    </main>
+  </div>
+
+  <div id="form-modal" role="dialog" aria-modal="true" style="position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); z-index:9999;">
+    <div id="form-modal-card" style="width:92%; max-width:960px; height:86%; background:#fff; border-radius:10px; overflow:hidden; position:relative; box-shadow:0 20px 40px rgba(0,0,0,0.4);">
+      <button id="form-modal-close" aria-label="Close form" style="position:absolute; right:12px; top:12px; z-index:5; padding:8px 10px; border-radius:6px; border:1px solid #ddd; background:#fff;">✕</button>
+      <div id="form-modal-spinner" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.95));">Loading…</div>
+      <iframe id="form-modal-iframe" src="" frameborder="0" title="Quote form" style="width:100%; height:100%; border:0; display:block;"></iframe>
+    </div>
+  </div>
+
+  <script>
+    const modelViewer = document.querySelector('#cupboard-viewer');
+    const spinner = document.querySelector('#viewer-spinner');
+
+    let selectedModel = 'Ewe.glb';
+    let selectedPackage = 'Furniture Only';
+    let selectedCushions = 'Without%20Cushions';
+    let selectedDoor = 'Green';
+    let selectedMaterial = 'Laminate';
+    let selectedWheelbase = 'LWB';
+
+    const wheelbaseByModel = {
+      'Twin%20Bench.glb': 'LWB',
+      'Ewe.glb': 'LWB',
+      'Belted%20Ewe.glb': 'LWB'
+    };
+
+    const MODEL_FORM_URLS = {
+      'Twin%20Bench.glb': 'https://blacksheepcampers.wixforms.com/f/7516871135326110811',
+      'Ewe.glb': 'https://blacksheepcampers.wixforms.com/f/7516869375056413788',
+      'Belted%20Ewe.glb': 'https://blacksheepcampers.wixforms.com/f/7516871286258140321'
+    };
+
+    const PRICE_FALLBACK = {
+      'Furniture Only': {
+        'Twin Bench': {
+          'With Cushions': { SWB: { Laminate: 2750, 'Hexa ply': 2550 }, LWB: { Laminate: 3020, 'Hexa ply': 2820 } },
+          'Without Cushions': { SWB: { Laminate: 2095, 'Hexa ply': 1895 }, LWB: { Laminate: 2295, 'Hexa ply': 2095 } }
+        },
+        Ewe: {
+          'With Cushions': { SWB: { Laminate: 2250, 'Hexa ply': 2050 }, LWB: { Laminate: 2520, 'Hexa ply': 2320 } },
+          'Without Cushions': { SWB: { Laminate: 1595, 'Hexa ply': 1395 }, LWB: { Laminate: 1795, 'Hexa ply': 1595 } }
+        },
+        'Belted Ewe': {
+          'With Cushions': { SWB: { Laminate: 3500, 'Hexa ply': 3300 }, LWB: { Laminate: 3770, 'Hexa ply': 3570 } },
+          'Without Cushions': { SWB: { Laminate: 2745, 'Hexa ply': 2545 }, LWB: { Laminate: 2945, 'Hexa ply': 2745 } }
+        }
+      },
+      'Full Conversion': {
+        'Twin Bench': {
+          'With Cushions': { SWB: { Laminate: 11200, 'Hexa ply': 11000 }, LWB: { Laminate: 11500, 'Hexa ply': 11300 } },
+          'Without Cushions': { SWB: { Laminate: 0, 'Hexa ply': 0 }, LWB: { Laminate: 0, 'Hexa ply': 0 } }
+        },
+        Ewe: {
+          'With Cushions': { SWB: { Laminate: 10700, 'Hexa ply': 10500 }, LWB: { Laminate: 11000, 'Hexa ply': 10800 } },
+          'Without Cushions': { SWB: { Laminate: 0, 'Hexa ply': 0 }, LWB: { Laminate: 0, 'Hexa ply': 0 } }
+        },
+        'Belted Ewe': {
+          'With Cushions': { SWB: { Laminate: 11950, 'Hexa ply': 11750 }, LWB: { Laminate: 12250, 'Hexa ply': 12050 } },
+          'Without Cushions': { SWB: { Laminate: 0, 'Hexa ply': 0 }, LWB: { Laminate: 0, 'Hexa ply': 0 } }
+        }
+      }
+    };
+
+    const MODEL_DEFAULT_ORBIT = {
+      'Twin%20Bench.glb': '135deg 75deg auto',
+      'Twin%20Bench%20Cushion.glb': '135deg 75deg auto',
+      'Ewe.glb': '135deg 75deg auto',
+      'Ewe%20Cushion.glb': '135deg 75deg auto',
+      'Belted%20Ewe.glb': '135deg 75deg auto',
+      'Belted%20Ewe%20Cushion.glb': '135deg 75deg auto'
+    };
+
+    const MODEL_CUSHION_FILES = {
+      'Twin%20Bench.glb': 'Twin%20Bench%20Cushion.glb',
+      'Ewe.glb': 'Ewe%20Cushion.glb',
+      'Belted%20Ewe.glb': 'Belted%20Ewe%20Cushion.glb'
+    };
+
+    const MODEL_FEATURE_FILES = {
+      'Twin%20Bench.glb': 'twin-bench.csv',
+      'Ewe.glb': 'ewe.csv',
+      'Belted%20Ewe.glb': 'belted-ewe.csv'
+    };
+
+    const CUSHION_VARIANT_SWAP_MODELS = new Set([
+      'Twin%20Bench%20Cushion.glb'
+    ]);
+
+    const DEFAULT_ORBIT = MODEL_DEFAULT_ORBIT[selectedModel];
+    let initialLoadDone = false;
+    let userHasManualView = false;
+    let savedOrbitToRestore = null;
+    let priceDataPromise = null;
+
+    function resolveMaterialFromDoor(doorName = selectedDoor) {
+      return doorName === 'Hexa ply' ? 'Hexa ply' : 'Laminate';
+    }
+
+    function getFormUrlForSelectedModel() {
+      return MODEL_FORM_URLS[selectedModel] || MODEL_FORM_URLS['Twin%20Bench.glb'];
+    }
+
+    function syncModelButtons(selectedValue) {
+      document.querySelectorAll('.layout-btn').forEach((button) => {
+        const matches = button.getAttribute('data-size') === selectedValue;
+        button.classList.toggle('active', matches);
+      });
+    }
+
+    function syncPackageButtons(selectedValue) {
+      document.querySelectorAll('.package-btn').forEach((button) => {
+        const matches = button.getAttribute('data-package') === selectedValue;
+        button.classList.toggle('active', matches);
+      });
+    }
+
+    function syncDoorButtons() {
+      document.querySelectorAll('.door-btn').forEach((button) => {
+        const matches = button.getAttribute('data-door') === selectedDoor;
+        button.classList.toggle('active', matches);
+      });
+    }
+
+    function syncCushionButtons() {
+      const isFullConversion = selectedPackage === 'Full Conversion';
+      document.querySelectorAll('.cushion-btn').forEach((button) => {
+        const value = button.getAttribute('data-cushion');
+        const shouldDisable = isFullConversion && value === 'Without%20Cushions';
+        const isSelected = value === selectedCushions && !shouldDisable;
+
+        button.disabled = shouldDisable;
+        button.classList.toggle('disabled', shouldDisable);
+        button.classList.toggle('active', isSelected);
+      });
+
+      if (isFullConversion) {
+        selectedCushions = 'Cushions';
+        const withButton = document.querySelector('.cushion-btn[data-cushion="Cushions"]');
+        if (withButton) withButton.classList.add('active');
+      }
+    }
+
+    function syncWheelbaseButtons() {
+      document.querySelectorAll('.size-btn').forEach((button) => {
+        const matches = button.getAttribute('data-wheelbase') === selectedWheelbase;
+        button.classList.toggle('active', matches);
+      });
+    }
+
+    function setWheelbaseForCurrentModel() {
+      selectedWheelbase = wheelbaseByModel[selectedModel] || 'LWB';
+      syncWheelbaseButtons();
+    }
+
+    function parseCsvRow(row) {
+      const values = [];
+      let current = '';
+      let inQuotes = false;
+
+      for (let i = 0; i < row.length; i += 1) {
+        const char = row[i];
+
+        if (char === '"') {
+          if (inQuotes && row[i + 1] === '"') {
+            current += '"';
+            i += 1;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          values.push(current);
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+
+      values.push(current);
+      return values.map((value) => value.replace(/^\uFEFF/, '').trim());
+    }
+
+    function parsePriceCsv(csvText) {
+      const rows = csvText.split(/\r?\n/).filter((line) => line.trim() !== '');
+      const parsed = {};
+
+      for (const row of rows) {
+        const values = parseCsvRow(row);
+
+        if (!values.length || values.every((value) => !value)) {
+          continue;
+        }
+
+        if (values[0].toLowerCase() === 'package') {
+          continue;
+        }
+
+        const [packageName, layout, cushion, wheelbase, colour, price, ...descriptionParts] = values;
+
+        if (!packageName || !layout || !cushion || !wheelbase || !colour || price === undefined) {
+          continue;
+        }
+
+        const description = descriptionParts
+          .map((part) => part.trim())
+          .filter((part) => part)
+          .join(', ');
+
+        if (!parsed[packageName]) parsed[packageName] = {};
+        if (!parsed[packageName][layout]) parsed[packageName][layout] = {};
+        if (!parsed[packageName][layout][cushion]) parsed[packageName][layout][cushion] = {};
+        if (!parsed[packageName][layout][cushion][wheelbase]) parsed[packageName][layout][cushion][wheelbase] = {};
+
+        parsed[packageName][layout][cushion][wheelbase][colour] = {
+          price: Number(price),
+          description
+        };
+      }
+
+      return parsed;
+    }
+
+    async function loadPriceData() {
+      if (priceDataPromise) return priceDataPromise;
+
+      priceDataPromise = fetch('Price%20list.csv')
+        .then((response) => {
+          if (!response.ok) throw new Error('Could not fetch price CSV');
+          return response.text();
+        })
+        .then((csvText) => parsePriceCsv(csvText))
+        .catch(() => PRICE_FALLBACK);
+
+      return priceDataPromise;
+    }
+
+    function getLayoutNameFromModel(modelFile) {
+      if (modelFile === 'Ewe.glb') return 'Ewe';
+      if (modelFile === 'Belted%20Ewe.glb') return 'Belted Ewe';
+      return 'Twin Bench';
+    }
+
+    function getMaterialName() {
+      return resolveMaterialFromDoor(selectedDoor);
+    }
+
+    function getCurrentVariantInfo(priceData) {
+      const layoutName = getLayoutNameFromModel(selectedModel);
+      const cushionName = selectedCushions === 'Cushions' ? 'With Cushions' : 'Without Cushions';
+      const materialName = getMaterialName();
+      const packageData = priceData[selectedPackage] || {};
+      const variant = packageData[layoutName]?.[cushionName]?.[selectedWheelbase]?.[materialName];
+
+      if (typeof variant === 'number') {
+        return { price: variant, description: '' };
+      }
+
+      if (variant && typeof variant === 'object') {
+        return {
+          price: variant.price,
+          description: variant.description || ''
+        };
+      }
+
+      return { price: undefined, description: '' };
+    }
+
+    function updateProductTitle() {
+      const titleElement = document.querySelector('.product-title');
+      if (!titleElement) return;
+
+      const layoutName = getLayoutNameFromModel(selectedModel);
+      const friendlyLayout = layoutName === 'Twin Bench' ? 'The twin bench' : layoutName === 'Belted Ewe' ? 'The belted ewe' : 'The ewe';
+      titleElement.innerHTML = `${friendlyLayout} -<br>${selectedPackage.toLowerCase()}`;
+    }
+
+    async function updatePriceDisplay() {
+      const priceData = await loadPriceData();
+      const variant = getCurrentVariantInfo(priceData);
+      const priceElement = document.querySelector('.product-price strong');
+
+      if (!priceElement) return;
+
+      if (typeof variant.price === 'number') {
+        priceElement.textContent = `£${variant.price.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      } else {
+        priceElement.textContent = '£0.00';
+      }
+    }
+
+    async function updateDescription() {
+      const priceData = await loadPriceData();
+      const descriptionElement = document.getElementById('product-description');
+
+      if (!descriptionElement) return;
+
+      const variant = getCurrentVariantInfo(priceData);
+      if (variant.description) {
+        descriptionElement.textContent = variant.description;
+      } else {
+        descriptionElement.textContent = 'Select your package, layout and finish to see the product description.';
+      }
+    }
+
+    function parseFeatureCsv(csvText) {
+      const rows = csvText.split(/\r?\n/).filter((line) => line.trim() !== '');
+      const features = [];
+
+      for (const row of rows) {
+        const values = parseCsvRow(row);
+        const feature = values
+          .map((value) => value.trim())
+          .filter((value) => value && value.toLowerCase() !== 'feature')
+          .join(', ');
+
+        if (feature) {
+          features.push(feature.replace(/^\s+|\s+$/g, ''));
+        }
+      }
+
+      return features;
+    }
+
+    async function loadModelFeatures(modelFile = selectedModel) {
+      const featureFile = MODEL_FEATURE_FILES[modelFile] || 'ewe.csv';
+
+      try {
+        const response = await fetch(featureFile);
+        if (!response.ok) throw new Error('Feature CSV could not be loaded');
+        const csvText = await response.text();
+        const features = parseFeatureCsv(csvText);
+        return features;
+      } catch (error) {
+        console.warn('Could not load feature CSV for', modelFile, error);
+        return [];
+      }
+    }
+
+    async function updateCoreFeaturesVisibility() {
+      const coreFeaturesBox = document.getElementById('core-features');
+      if (!coreFeaturesBox) return;
+
+      const features = await loadModelFeatures(selectedModel);
+
+      if (!features.length) {
+        coreFeaturesBox.hidden = true;
+        coreFeaturesBox.style.display = 'none';
+        coreFeaturesBox.innerHTML = '';
+        return;
+      }
+
+      coreFeaturesBox.innerHTML = `
+        <div class="core-features-title">Core Features:</div>
+        <ul class="core-features-list">
+          ${features.map((feature) => `<li>${feature}</li>`).join('')}
+        </ul>
+      `;
+      coreFeaturesBox.hidden = false;
+      coreFeaturesBox.style.display = 'block';
+    }
+
+    function getActiveModelFile() {
+      if (selectedCushions === 'Cushions') {
+        return MODEL_CUSHION_FILES[selectedModel] || selectedModel;
+      }
+      return selectedModel;
+    }
+
+    function getModelVariantName(variantName) {
+      const activeModel = getActiveModelFile();
+      const isCushionSwapModel = CUSHION_VARIANT_SWAP_MODELS.has(activeModel);
+
+      if (isCushionSwapModel && (variantName === 'Black' || variantName === 'Blue')) {
+        return variantName === 'Black' ? 'Blue' : 'Black';
+      }
+
+      return variantName;
+    }
+
+    function showViewer() {
+      spinner.style.display = 'none';
+      modelViewer.style.visibility = 'visible';
+      modelViewer.style.opacity = '1';
+    }
+
+    function showSpinnerMessage(msg) {
+      spinner.style.display = 'flex';
+      spinner.textContent = msg;
+      modelViewer.style.visibility = 'hidden';
+      modelViewer.style.opacity = '0';
+    }
+
+    function getMaterialFromDoor(doorName) {
+      return doorName === 'Hexa ply' ? 'Hexa ply' : 'Laminate';
+    }
+
+    function applyVariant(name) {
+      const doorName = name || selectedDoor;
+      const resolvedMaterial = resolveMaterialFromDoor(doorName);
+      const variantBase = resolvedMaterial === 'Hexa ply' ? 'Black' : doorName;
+      const variantName = getModelVariantName(variantBase);
+
+      try {
+        if (typeof modelViewer.variantName !== 'undefined') {
+          modelViewer.variantName = variantName;
+        }
+        modelViewer.setAttribute('variant-name', variantName);
+      } catch (err) {
+        console.warn('Error applying variant:', err);
+      }
+    }
+
+    function rotateBy(deg) {
+      try {
+        const orbit = modelViewer.cameraOrbit || DEFAULT_ORBIT || '135deg 75deg auto';
+        const parts = orbit.trim().split(/\s+/);
+        if (parts.length < 3) return;
+
+        const azMatch = parts[0].match(/(-?[0-9.]+)deg/);
+        if (!azMatch) return;
+
+        let azValue = parseFloat(azMatch[1]);
+        azValue = (azValue + deg) % 360;
+        if (azValue < 0) azValue += 360;
+
+        modelViewer.cameraOrbit = `${azValue}deg ${parts[1]} ${parts[2]}`;
+        userHasManualView = true;
+        savedOrbitToRestore = modelViewer.cameraOrbit;
+      } catch (err) {
+        console.warn('rotateBy error:', err);
+      }
+    }
+
+    function setModelFile(fileName) {
+      const orbitToUse = userHasManualView && savedOrbitToRestore ? savedOrbitToRestore : (MODEL_DEFAULT_ORBIT[fileName] || DEFAULT_ORBIT || '135deg 75deg auto');
+      try { modelViewer.cameraOrbit = orbitToUse; } catch (err) {}
+      modelViewer.setAttribute('src', fileName);
+    }
+
+    function refreshVariantAfterLoad() {
+      requestAnimationFrame(() => applyVariant(selectedDoor));
+      setTimeout(() => applyVariant(selectedDoor), 150);
+    }
+
+    modelViewer.addEventListener('load', () => {
+      if (!initialLoadDone) {
+        modelViewer.cameraOrbit = MODEL_DEFAULT_ORBIT[getActiveModelFile()] || DEFAULT_ORBIT;
+        initialLoadDone = true;
+      }
+      refreshVariantAfterLoad();
+      showViewer();
+    }, { once: true });
+
+    let retryCount = 0;
+    modelViewer.addEventListener('error', (ev) => {
+      console.error('model-viewer error event:', ev);
+      if (retryCount < 3) {
+        retryCount += 1;
+        showSpinnerMessage(`Model failed to load — retrying (${retryCount}/3)…`);
+        setTimeout(() => {
+          const src = modelViewer.getAttribute('src');
+          modelViewer.removeAttribute('src');
+          setTimeout(() => modelViewer.setAttribute('src', src), 50);
+        }, 900 * retryCount);
+      } else {
+        showSpinnerMessage('Model failed to load. Check network or upload the GLB.');
+      }
+    });
+
+    function updateConfigurator() {
+      const targetFileUrl = getActiveModelFile();
+      const currentSrcAttr = modelViewer.getAttribute('src');
+      syncModelButtons(selectedModel);
+      syncDoorButtons();
+      syncCushionButtons();
+      setWheelbaseForCurrentModel();
+      updateCoreFeaturesVisibility();
+
+      if (currentSrcAttr !== targetFileUrl) {
+        showSpinnerMessage('Loading model…');
+        setModelFile(targetFileUrl);
+
+        modelViewer.addEventListener('load', () => {
+          if (userHasManualView && savedOrbitToRestore) {
+            try { modelViewer.cameraOrbit = savedOrbitToRestore; } catch (err) {}
+          } else {
+            try { modelViewer.cameraOrbit = MODEL_DEFAULT_ORBIT[targetFileUrl] || DEFAULT_ORBIT; } catch (err) {}
+          }
+
+          refreshVariantAfterLoad();
+          showViewer();
+        }, { once: true });
+      } else {
+        applyVariant(selectedDoor);
+      }
+    }
+
+    document.querySelectorAll('.package-btn').forEach((button) => {
+      button.addEventListener('click', (e) => {
+        const nextPackage = e.target.getAttribute('data-package');
+        if (!nextPackage) return;
+        selectedPackage = nextPackage;
+        if (selectedPackage === 'Full Conversion') {
+          selectedCushions = 'Cushions';
+        }
+        syncPackageButtons(selectedPackage);
+        updateProductTitle();
+        updatePriceDisplay();
+        updateDescription();
+        updateCoreFeaturesVisibility();
+        updateConfigurator();
+      });
+    });
+
+    document.querySelectorAll('.layout-btn').forEach((button) => {
+      button.addEventListener('click', (e) => {
+        const nextModel = e.target.getAttribute('data-size');
+        selectedModel = nextModel;
+        syncModelButtons(selectedModel);
+        setWheelbaseForCurrentModel();
+
+        if (userHasManualView) {
+          try { savedOrbitToRestore = modelViewer.cameraOrbit || null; } catch (err) { savedOrbitToRestore = null; }
+        } else {
+          savedOrbitToRestore = null;
+        }
+
+        if (selectedPackage === 'Full Conversion') {
+          selectedCushions = 'Cushions';
+        }
+
+        updateProductTitle();
+        updatePriceDisplay();
+        updateDescription();
+        updateCoreFeaturesVisibility();
+        updateConfigurator();
+      });
+    });
+
+    document.querySelectorAll('.door-btn').forEach((button) => {
+      button.addEventListener('click', (e) => {
+        const clickedDoor = e.target.getAttribute('data-door');
+        if (!clickedDoor) return;
+        selectedDoor = clickedDoor;
+        selectedMaterial = resolveMaterialFromDoor(selectedDoor);
+        syncDoorButtons();
+        applyVariant(selectedDoor);
+        updatePriceDisplay();
+        updateDescription();
+      });
+    });
+
+    document.querySelectorAll('.size-btn').forEach((button) => {
+      button.addEventListener('click', (e) => {
+        const nextWheelbase = e.target.getAttribute('data-wheelbase');
+        if (!nextWheelbase) return;
+        selectedWheelbase = nextWheelbase;
+        syncWheelbaseButtons();
+        updatePriceDisplay();
+        updateDescription();
+      });
+    });
+
+    document.querySelectorAll('.cushion-btn').forEach((button) => {
+      button.addEventListener('click', (e) => {
+        const nextCushion = e.target.getAttribute('data-cushion');
+        if (!nextCushion) return;
+        selectedCushions = nextCushion;
+        syncCushionButtons();
+        updatePriceDisplay();
+        updateDescription();
+        updateConfigurator();
+      });
+    });
+
+    document.getElementById('request-quote-btn')?.addEventListener('click', () => {
+      const formUrl = getFormUrlForSelectedModel();
+      const modal = document.getElementById('form-modal');
+      const iframe = document.getElementById('form-modal-iframe');
+      const spinner = document.getElementById('form-modal-spinner');
+      iframe.src = formUrl;
+      modal.style.display = 'flex';
+      spinner.style.display = 'flex';
+      iframe.onload = () => spinner.style.display = 'none';
+    });
+
+    document.getElementById('form-modal-close')?.addEventListener('click', () => {
+      document.getElementById('form-modal').style.display = 'none';
+      document.getElementById('form-modal-iframe').src = '';
+    });
+
+    document.querySelectorAll('[data-rotate]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const direction = button.getAttribute('data-rotate');
+        rotateBy(direction === 'left' ? -30 : 30);
+      });
+    });
+
+    updateProductTitle();
+    updatePriceDisplay();
+    updateDescription();
+    updateCoreFeaturesVisibility();
+    updateConfigurator();
+  </script>
+</body>
+</html>
